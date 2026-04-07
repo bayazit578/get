@@ -11,7 +11,7 @@ botton = 13
 
 GPIO.setup(button, GPIO.IN)
 
-state = 0
+state = 1
 
 while True:
     if GPIO.input(button):
