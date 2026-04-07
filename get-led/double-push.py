@@ -8,8 +8,8 @@ leds = [16, 5, 25, 17, 27, 23, 22, 24]
 GPIO.setup(leds, GPIO.OUT)
 GPIO.output(leds, 0)
 
-up = 9
-down = 10
+up = 10
+down = 9
 
 GPIO.setup(up, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(down, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
