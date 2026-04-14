@@ -2,9 +2,9 @@ import pwm_dac as pwm
 import signal_generator as sg
 import time
 
-amplitude = 3.0
-signal_frequency = 10
-sampling_frequency = 1000
+amplitude = float(input("Введите амплитуду сигнала (0-3.3 В): "))
+signal_frequency = float(input("Введите частоту сигнала (Гц): "))
+sampling_frequency = float(input("Введите частоту дискретизации (Гц): "))
 
 dac = None
 
