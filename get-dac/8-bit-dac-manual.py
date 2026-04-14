@@ -1,9 +1,10 @@
 import RPi.GPIO as GPIO
 
-dac_bits = [17, 18, 27, 22, 23, 24, 25, 4]
+dac_bits = [16, 20, 21, 25, 26, 17, 27, 22]
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(dac_bits, GPIO.OUT)
+GPIO.output(dac_bits, 0)
 
 dynamic_range = 3.3
 
@@ -27,6 +28,9 @@ try:
             number_to_dac(number)
         except ValueError:
             print("Вы ввели не число. Попробуйте ещё раз\n")
+        except KeyboardInterrupt:
+            print("\nПрограмма остановлена пользователем")
+            break
 
 finally:
     GPIO.output(dac_bits, 0)
