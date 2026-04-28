@@ -1,32 +1,38 @@
-import machine
-import math
+import pwm_dac as pwm
+import signal_generator as sg
 import time
 
-AMPLITUDE = 127
-FREQUENCY = 100
-SAMPLE_RATE = 10000
+amplitude = float(input("Введите амплитуду сигнала (0-3.3 В): "))
+signal_frequency = float(input("Введите частоту сигнала (Гц): "))
+sampling_frequency = float(input("Введите частоту дискретизации (Гц): "))
 
-pwm_pin = machine.Pin(0, machine.Pin.OUT)
-pwm = machine.PWM(pwm_pin)
-pwm.freq(100000)
+dac = None
 
-def set_pwm_value(value):
-    duty = int((value / 255) * 1023)
-    pwm.duty(duty)
+def get_triangle_wave_amplitude(frequency, time_point):
+    period = 1 / frequency
+    half_period = period / 2
+    position = time_point % period
+    
+    if position < half_period:
+        return 2 * position * frequency
+    else:
+        return 2 * (1 - position * frequency)
 
-def generate_triangle():
-    samples_per_period = SAMPLE_RATE // FREQUENCY
-    step = (2 * AMPLITUDE) / (samples_per_period // 2)
+try:
+    dac = pwm.PWM_DAC(12, 500, 3.3, False)
+    
+    start_time = time.time()
     
     while True:
-        for i in range(samples_per_period // 2):
-            value = int(127 + i * step)
-            set_pwm_value(max(0, min(255, value)))
-            time.sleep_us(1_000_000 // SAMPLE_RATE)
-        
-        for i in range(samples_per_period // 2):
-            value = int(127 + AMPLITUDE - i * step)
-            set_pwm_value(max(0, min(255, value)))
-            time.sleep_us(1_000_000 // SAMPLE_RATE)
+        current_time = time.time() - start_time
+        normalized_amplitude = get_triangle_wave_amplitude(signal_frequency, current_time)
+        voltage = normalized_amplitude * amplitude
+        dac.set_voltage(voltage)
+        sg.wait_for_sampling_period(sampling_frequency)
 
-generate_triangle()
+except KeyboardInterrupt:
+    pass
+
+finally:
+    if dac:
+        dac.deinit()

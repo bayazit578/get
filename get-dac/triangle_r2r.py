@@ -1,30 +1,35 @@
-import machine
-import math
+import r2r_dac as r2r
+import signal_generator as sg
 import time
 
-AMPLITUDE = 127
-FREQUENCY = 100
-SAMPLE_RATE = 10000
+amplitude = 3.2
+signal_frequency = 10
+sampling_frequency = 1000
 
-dac_pins = [machine.Pin(i, machine.Pin.OUT) for i in range(8)]
+dac = None
 
-def set_dac_value(value):
-    for i in range(8):
-        dac_pins[i].value((value >> i) & 1)
-
-def generate_triangle():
-    samples_per_period = SAMPLE_RATE // FREQUENCY
-    step = (2 * AMPLITUDE) / (samples_per_period // 2)
+try:
+    dac = r2r.R2R_DAC([16, 20, 21, 25, 26, 17, 27, 22], 3.3, False)
+    
+    start_time = time.time()
+    half_period = 1 / (2 * signal_frequency)
     
     while True:
-        for i in range(samples_per_period // 2):
-            value = int(127 + i * step)
-            set_dac_value(max(0, min(255, value)))
-            time.sleep_us(1_000_000 // SAMPLE_RATE)
+        current_time = time.time() - start_time
         
-        for i in range(samples_per_period // 2):
-            value = int(127 + AMPLITUDE - i * step)
-            set_dac_value(max(0, min(255, value)))
-            time.sleep_us(1_000_000 // SAMPLE_RATE)
+        period_position = current_time % (1 / signal_frequency)
+        
+        if period_position < half_period:
+            voltage = 2 * amplitude * period_position * signal_frequency
+        else:
+            voltage = 2 * amplitude * (1 - period_position * signal_frequency)
+        
+        dac.set_voltage(voltage)
+        sg.wait_for_sampling_period(sampling_frequency)
 
-generate_triangle()
+except KeyboardInterrupt:
+    pass
+
+finally:
+    if dac:
+        dac.deinit()
